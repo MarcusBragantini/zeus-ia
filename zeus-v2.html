@@ -1287,26 +1287,7 @@
                         className: "mr-2"
                       }, '⚡'),
                       'Contratos Ativos'
-                    ),
-                    isConnected ? 
-                      React.createElement('div', {
-                        className: "flex space-x-2"
-                      },
-                        React.createElement('button', {
-                          onClick: loadOpenContracts,
-                          disabled: isLoadingContracts,
-                          className: "bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-3 py-1 rounded text-sm font-medium transition-colors"
-                        }, isLoadingContracts ? '⏳ Carregando...' : '🔄 Recarregar'),
-                        React.createElement('button', {
-                          onClick: () => {
-                            console.log('🗑️ Limpando todos os contratos manualmente...');
-                            setTrades([]);
-                            setProfit(0); // Zerar também o lucro
-                          },
-                          className: "bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-medium transition-colors"
-                        }, '🗑️ Limpar Tudo')
-                      )
-                    : null
+                    )
                   ),
                   React.createElement('div', {
                     className: "space-y-2"
