@@ -308,6 +308,7 @@
           const [connectionStatus, setConnectionStatus] = useState('Desconectado');
           const [errorMessage, setErrorMessage] = useState('');
           const [isExecutingTrade, setIsExecutingTrade] = useState(false);
+          const [isLoadingContracts, setIsLoadingContracts] = useState(false);
           const wsRef = useRef(null);
           const [accountInfo, setAccountInfo] = useState(null);
 
@@ -388,19 +389,37 @@
 
           const handleDerivMessage = (data) => {
             try {
-              console.log('Mensagem recebida:', data);
+              // Log apenas mensagens importantes
+              if (data.portfolio || data.buy || data.proposal_open_contract) {
+                console.log('📨 Mensagem importante recebida:', Object.keys(data));
+              }
               
               if (!data || typeof data !== 'object') {
-                console.error('Dados inválidos recebidos:', data);
+                console.error('❌ Dados inválidos recebidos:', data);
                 return;
               }
 
               if (data.error) {
                 console.error('Erro da API:', data.error);
                 const errorMsg = data.error.message || 'Erro desconhecido da API';
-                if (!errorMsg.includes('already subscribed')) {
+                
+                // Ignorar erros comuns que não são críticos
+                const ignorarErros = [
+                  'already subscribed',
+                  'Input validation failed: active_symbols',
+                  'Input validation failed: landing_company',
+                  'Unrecognised request'
+                ];
+                
+                const deveIgnorar = ignorarErros.some(erroIgnorar => 
+                  errorMsg.includes(erroIgnorar)
+                );
+                
+                if (!deveIgnorar) {
                   showError('Erro da API: ' + errorMsg);
                   setConnectionStatus('Erro: ' + errorMsg);
+                } else {
+                  console.log('⚠️ Erro ignorado (não crítico):', errorMsg);
                 }
                 return;
               }
@@ -423,6 +442,10 @@
                   setTimeout(() => {
                     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
                       subscribeToTicks();
+                      // Solicitar atualização de saldo
+                      wsRef.current.send(JSON.stringify({ balance: 1 }));
+                      // Carregar contratos abertos existentes
+                      loadOpenContracts();
                     }
                   }, 100);
                 } catch (error) {
@@ -507,18 +530,24 @@
                     const payout = parseFloat(data.buy.payout) || 0;
                     
                     const newTrade = {
-                      id: contractId,
-                      type: contractType || 'CALL',
+                      id: String(contractId || Date.now().toString()),
+                      type: String(contractType || 'CALL'),
                       entryPrice: parseFloat(currentPrice) || 0,
                       amount: parseFloat(entryValue) || 0,
                       timestamp: new Date().toLocaleTimeString('pt-BR'),
                       status: 'ATIVO',
-                      contractId: contractId,
+                      contractId: String(contractId || Date.now().toString()),
                       buyPrice: buyPrice,
                       payout: payout,
                       result: null,
                       profit: 0,
-                      currentPrice: parseFloat(currentPrice) || 0
+                      currentPrice: parseFloat(currentPrice) || 0,
+                      isSold: false,
+                      finalPrice: null,
+                      symbol: String(symbol),
+                      duration: parseInt(duration) || 5,
+                      strategy: String(strategy),
+                      aiModel: String(aiModel)
                     };
                     
                     setTrades(prev => {
@@ -557,10 +586,28 @@
                     const newBalance = parseFloat(data.balance.balance);
                     if (!isNaN(newBalance)) {
                       setBalance(newBalance);
+                      console.log('Saldo atualizado:', newBalance);
                     }
                   }
                 } catch (error) {
                   console.error('Erro ao atualizar saldo:', error);
+                  showError('Erro ao atualizar saldo: ' + error.message);
+                }
+                return;
+              }
+
+              // Atualização de saldo através de outras mensagens
+              if (data.transaction) {
+                try {
+                  if (data.transaction && typeof data.transaction.balance_after !== 'undefined') {
+                    const newBalance = parseFloat(data.transaction.balance_after);
+                    if (!isNaN(newBalance)) {
+                      setBalance(newBalance);
+                      console.log('Saldo atualizado via transação:', newBalance);
+                    }
+                  }
+                } catch (error) {
+                  console.error('Erro ao atualizar saldo via transação:', error);
                 }
                 return;
               }
@@ -573,6 +620,94 @@
                 }
                 return;
               }
+
+              if (data.portfolio) {
+                try {
+                  console.log('📥 Portfolio recebido');
+                  
+                  if (data.portfolio.contracts && Array.isArray(data.portfolio.contracts)) {
+                    console.log(`📋 Total de contratos no portfolio: ${data.portfolio.contracts.length}`);
+                    
+                    // Filtrar apenas contratos realmente ativos (não vendidos e não expirados)
+                    const openContracts = data.portfolio.contracts.filter(contract => {
+                      const isActive = contract && 
+                                      !contract.is_sold && 
+                                      !contract.is_expired &&
+                                      contract.contract_id;
+                      
+                      if (contract) {
+                        console.log(`🔍 Contrato ${contract.contract_id}: vendido=${contract.is_sold}, expirado=${contract.is_expired}, ativo=${isActive}`);
+                      }
+                      
+                      return isActive;
+                    });
+                    
+                    console.log(`✅ ${openContracts.length} contratos ATIVOS encontrados`);
+                    
+                    if (openContracts.length > 0) {
+                      // Converter contratos do portfolio para o formato dos trades
+                      const portfolioTrades = openContracts.map(contract => ({
+                        id: String(contract.contract_id || Date.now().toString()),
+                        type: String(contract.contract_type || 'CALL'),
+                        entryPrice: contract.entry_tick ? parseFloat(contract.entry_tick) : 0,
+                        amount: contract.buy_price ? parseFloat(contract.buy_price) : 0,
+                        timestamp: contract.date_start ? new Date(contract.date_start * 1000).toLocaleTimeString('pt-BR') : new Date().toLocaleTimeString('pt-BR'),
+                        status: 'ATIVO',
+                        contractId: String(contract.contract_id || Date.now().toString()),
+                        buyPrice: contract.buy_price ? parseFloat(contract.buy_price) : 0,
+                        payout: contract.payout ? parseFloat(contract.payout) : 0,
+                        result: null,
+                        profit: 0,
+                        currentPrice: contract.current_spot ? parseFloat(contract.current_spot) : 0,
+                        isSold: false,
+                        finalPrice: null,
+                        symbol: String(contract.symbol || symbol),
+                        duration: parseInt(contract.duration || 5),
+                        strategy: String(strategy),
+                        aiModel: String(aiModel)
+                      }));
+                      
+                      setTrades(prev => {
+                        const currentTrades = Array.isArray(prev) ? prev : [];
+                        const existingIds = new Set(currentTrades.map(t => t.contractId));
+                        const newTrades = portfolioTrades.filter(t => !existingIds.has(t.contractId));
+                        const result = [...newTrades, ...currentTrades].slice(0, 10);
+                        console.log(`📈 ${result.length} contratos carregados`);
+                        return result;
+                      });
+                      
+                      setIsLoadingContracts(false);
+                      
+                      // Subscrever a cada contrato aberto para receber atualizações
+                      openContracts.forEach(contract => {
+                        if (contract.contract_id && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                          setTimeout(() => {
+                            try {
+                              wsRef.current.send(JSON.stringify({
+                                proposal_open_contract: 1,
+                                contract_id: contract.contract_id,
+                                subscribe: 1
+                              }));
+                            } catch (err) {
+                              console.error('❌ Erro ao subscrever contrato:', err);
+                            }
+                          }, 100);
+                        }
+                      });
+                    } else {
+                      console.log('ℹ️ Nenhum contrato aberto encontrado');
+                      setIsLoadingContracts(false);
+                    }
+                  }
+                } catch (error) {
+                  console.error('❌ Erro ao processar portfolio:', error);
+                  showError('Erro ao processar portfolio: ' + error.message);
+                  setIsLoadingContracts(false);
+                }
+                return;
+              }
+
+
 
             } catch (error) {
               console.error('Erro crítico ao processar mensagem:', error);
@@ -595,6 +730,39 @@
             }
           };
 
+          const loadOpenContracts = () => {
+            try {
+              if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                setIsLoadingContracts(true);
+                console.log('🔄 Carregando contratos ativos...');
+                
+                // Solicitar apenas portfolio (contratos ativos)
+                console.log('📡 Enviando requisição portfolio...');
+                const portfolioRequest = {
+                  portfolio: 1
+                };
+                wsRef.current.send(JSON.stringify(portfolioRequest));
+                
+                // Timeout para resetar loading
+                setTimeout(() => {
+                  if (isLoadingContracts) {
+                    console.log('⏰ Timeout no carregamento de contratos');
+                    setIsLoadingContracts(false);
+                  }
+                }, 8000);
+                
+              } else {
+                console.error('❌ WebSocket não está conectado');
+                showError('Não conectado à API para carregar contratos');
+                setIsLoadingContracts(false);
+              }
+            } catch (error) {
+              console.error('❌ Erro ao carregar contratos ativos:', error);
+              showError('Erro ao carregar contratos ativos: ' + error.message);
+              setIsLoadingContracts(false);
+            }
+          };
+
           const updateTradeResult = (contract) => {
             try {
               if (!contract || typeof contract !== 'object' || !contract.contract_id) {
@@ -613,11 +781,19 @@
                     const profitAmount = contract.profit ? parseFloat(contract.profit) : 0;
                     const isSold = Boolean(contract.is_sold);
                     const isWin = isSold && profitAmount > 0;
+                    const currentSpot = contract.current_spot ? parseFloat(contract.current_spot) : (trade.currentPrice || 0);
                     
+                    // Atualizar saldo quando o contrato é vendido
                     if (isSold && trade.status === 'ATIVO') {
                       setProfit(prevProfit => {
                         const currentProfit = typeof prevProfit === 'number' ? prevProfit : 0;
                         return currentProfit + profitAmount;
+                      });
+                      
+                      // Atualizar saldo da conta
+                      setBalance(prevBalance => {
+                        const currentBalance = typeof prevBalance === 'number' ? prevBalance : 0;
+                        return currentBalance + profitAmount;
                       });
                     }
                     
@@ -625,8 +801,11 @@
                       ...trade,
                       status: isSold ? (isWin ? 'LUCRO' : 'PREJUÍZO') : 'ATIVO',
                       result: isSold ? profitAmount : null,
-                      currentPrice: contract.current_spot ? parseFloat(contract.current_spot) : (trade.currentPrice || 0),
-                      profit: profitAmount
+                      currentPrice: currentSpot,
+                      profit: profitAmount,
+                      isSold: isSold,
+                      finalPrice: isSold ? currentSpot : trade.finalPrice,
+                      payout: contract.payout ? parseFloat(contract.payout) : trade.payout
                     };
                   }
                   
@@ -686,9 +865,14 @@
               wsRef.current.send(JSON.stringify(tradeParams));
               clearError();
               
+              // Timeout de segurança para evitar travamento
               setTimeout(() => {
-                setIsExecutingTrade(false);
-              }, 10000);
+                if (isExecutingTrade) {
+                  console.warn('Timeout na execução do trade - resetando estado');
+                  setIsExecutingTrade(false);
+                  showError('Timeout na execução do trade. Tente novamente.');
+                }
+              }, 15000);
 
             } catch (error) {
               showError('Erro ao executar trade: ' + error.message);
@@ -715,6 +899,40 @@
             return () => clearInterval(tradingInterval);
           }, [isTrading, isConnected, entryValue, duration, symbol, balance]);
 
+          // Atualizar saldo periodicamente
+          useEffect(() => {
+            if (!isConnected) return;
+
+            const balanceInterval = setInterval(() => {
+              try {
+                if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                  wsRef.current.send(JSON.stringify({ balance: 1 }));
+                }
+              } catch (error) {
+                console.error('Erro ao solicitar atualização de saldo:', error);
+              }
+            }, 10000); // A cada 10 segundos
+
+            return () => clearInterval(balanceInterval);
+          }, [isConnected]);
+
+          // Recarregar contratos abertos periodicamente
+          useEffect(() => {
+            if (!isConnected) return;
+
+            const contractsInterval = setInterval(() => {
+              try {
+                if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                  loadOpenContracts();
+                }
+              } catch (error) {
+                console.error('Erro ao recarregar contratos:', error);
+              }
+            }, 30000); // A cada 30 segundos
+
+            return () => clearInterval(contractsInterval);
+          }, [isConnected]);
+
           const analyzeMarket = () => {
             try {
               if (lineData.length < 10) return false;
@@ -739,14 +957,26 @@
             try {
               if (wsRef.current) {
                 if (wsRef.current.readyState === WebSocket.OPEN) {
-                  wsRef.current.send(JSON.stringify({ forget_all: "ticks" }));
-                  wsRef.current.send(JSON.stringify({ forget_all: "proposal_open_contract" }));
+                  try {
+                    wsRef.current.send(JSON.stringify({ forget_all: "ticks" }));
+                    wsRef.current.send(JSON.stringify({ forget_all: "proposal_open_contract" }));
+                  } catch (sendError) {
+                    console.warn('Erro ao enviar mensagens de desconexão:', sendError);
+                  }
                   
                   setTimeout(() => {
-                    wsRef.current.close();
+                    try {
+                      wsRef.current.close();
+                    } catch (closeError) {
+                      console.warn('Erro ao fechar conexão:', closeError);
+                    }
                   }, 100);
                 } else {
-                  wsRef.current.close();
+                  try {
+                    wsRef.current.close();
+                  } catch (closeError) {
+                    console.warn('Erro ao fechar conexão:', closeError);
+                  }
                 }
               }
               setIsConnected(false);
@@ -754,9 +984,11 @@
               setIsExecutingTrade(false);
               setLineData([]);
               setTrades([]);
+              setConnectionStatus('Desconectado');
               clearError();
             } catch (error) {
               console.error('Erro ao desconectar:', error);
+              showError('Erro ao desconectar: ' + error.message);
             }
           };
 
@@ -779,57 +1011,127 @@
               if (safeTrades.length === 0) {
                 return React.createElement('div', {
                   className: "text-center text-gray-500 py-8"
-                }, 'Nenhum contrato ativo');
+                }, 
+                  React.createElement('div', {
+                    className: "text-4xl mb-2"
+                  }, '⚡'),
+                  React.createElement('div', {
+                    className: "text-lg font-medium mb-1"
+                  }, 'Nenhum contrato ativo'),
+                  React.createElement('div', {
+                    className: "text-sm"
+                  }, 'Faça um trade para ver contratos ativos aqui')
+                );
               }
 
-              return safeTrades.map((trade) => {
-                if (!trade || typeof trade !== 'object') {
-                  return null;
-                }
+              return safeTrades.map((trade, index) => {
+                try {
+                  if (!trade || typeof trade !== 'object') {
+                    console.warn(`Trade inválido no índice ${index}:`, trade);
+                    return null;
+                  }
                 
-                const safeId = trade.id || Date.now().toString();
+                const safeId = String(trade.id || Date.now().toString());
                 const safeType = trade.type || 'CALL';
                 const safeAmount = trade.amount || 0;
                 const safeTimestamp = trade.timestamp || new Date().toLocaleTimeString('pt-BR');
                 const safeStatus = trade.status || 'ATIVO';
                 const safeResult = trade.result;
+                const safeCurrentPrice = trade.currentPrice || 0;
+                const safeEntryPrice = trade.entryPrice || 0;
+                const safePayout = trade.payout || 0;
+                const safeIsSold = trade.isSold || false;
                 
                 return React.createElement('div', {
                   key: safeId,
-                  className: "flex justify-between items-center bg-gray-800 p-3 rounded flex-wrap gap-2"
+                  className: "bg-gray-800 p-3 rounded-lg mb-2 border border-gray-700"
                 },
+                  // Primeira linha - Informações principais
                   React.createElement('div', {
-                    className: "flex items-center space-x-2 flex-wrap gap-2 min-w-0"
+                    className: "flex justify-between items-center mb-2 flex-wrap gap-2"
                   },
-                    React.createElement('span', {
-                      className: 'px-2 py-1 text-xs rounded ' + (safeType === 'CALL' ? 'bg-green-600' : 'bg-red-600')
-                    }, safeType),
-                    React.createElement('span', {
-                      className: "text-sm font-medium"
-                    }, '$' + (typeof safeAmount === 'number' ? safeAmount.toFixed(2) : '0.00')),
-                    React.createElement('span', {
-                      className: "text-xs text-gray-400"
-                    }, safeTimestamp),
-                    React.createElement('span', {
-                      className: "text-xs text-gray-500 mobile-hidden truncate"
-                    }, 'ID: ' + safeId.substring(0, 8) + '...')
-                  ),
-                  React.createElement('div', {
-                    className: "flex items-center space-x-2 flex-wrap gap-1"
-                  },
-                    React.createElement('span', {
-                      className: 'text-sm font-medium ' + (
-                        safeStatus === 'LUCRO' ? 'text-green-400' :
-                        safeStatus === 'PREJUÍZO' ? 'text-red-400' : 'text-yellow-400'
-                      )
-                    }, safeStatus),
-                    (safeResult !== null && safeResult !== undefined) ? 
+                    React.createElement('div', {
+                      className: "flex items-center space-x-2 flex-wrap gap-2 min-w-0"
+                    },
                       React.createElement('span', {
-                        className: 'text-sm font-bold ' + (safeResult > 0 ? 'text-green-400' : 'text-red-400')
-                      }, '$' + (typeof safeResult === 'number' ? safeResult.toFixed(2) : '0.00')) 
-                    : null
+                        className: 'px-2 py-1 text-xs rounded font-bold ' + (safeType === 'CALL' ? 'bg-green-600' : 'bg-red-600')
+                      }, safeType),
+                      React.createElement('span', {
+                        className: "text-sm font-medium text-white"
+                      }, '$' + (typeof safeAmount === 'number' ? safeAmount.toFixed(2) : '0.00')),
+                      React.createElement('span', {
+                        className: "text-xs text-gray-400"
+                      }, safeTimestamp)
+                    ),
+                    React.createElement('div', {
+                      className: "flex items-center space-x-2 flex-wrap gap-1"
+                    },
+                      React.createElement('span', {
+                        className: 'text-sm font-bold ' + (
+                          safeStatus === 'LUCRO' ? 'text-green-400' :
+                          safeStatus === 'PREJUÍZO' ? 'text-red-400' : 'text-yellow-400'
+                        )
+                      }, safeStatus),
+                      (safeResult !== null && safeResult !== undefined) ? 
+                        React.createElement('span', {
+                          className: 'text-sm font-bold ' + (safeResult > 0 ? 'text-green-400' : 'text-red-400')
+                        }, '$' + (typeof safeResult === 'number' ? safeResult.toFixed(2) : '0.00')) 
+                      : null
+                    )
+                  ),
+                  // Segunda linha - Informações detalhadas
+                  React.createElement('div', {
+                    className: "grid grid-cols-2 gap-2 text-xs"
+                  },
+                    React.createElement('div', {
+                      className: "flex justify-between"
+                    },
+                      React.createElement('span', {
+                        className: "text-gray-400"
+                      }, 'Entrada:'),
+                      React.createElement('span', {
+                        className: "text-white font-medium"
+                      }, (typeof safeEntryPrice === 'number' ? safeEntryPrice.toFixed(symbol.includes('R_') ? 3 : 5) : '0.00000'))
+                    ),
+                    React.createElement('div', {
+                      className: "flex justify-between"
+                    },
+                      React.createElement('span', {
+                        className: "text-gray-400"
+                      }, 'Atual:'),
+                      React.createElement('span', {
+                        className: safeIsSold ? "text-gray-500" : "text-white font-medium"
+                      }, (typeof safeCurrentPrice === 'number' ? safeCurrentPrice.toFixed(symbol.includes('R_') ? 3 : 5) : '0.00000'))
+                    ),
+                    React.createElement('div', {
+                      className: "flex justify-between"
+                    },
+                      React.createElement('span', {
+                        className: "text-gray-400"
+                      }, 'Payout:'),
+                      React.createElement('span', {
+                        className: "text-blue-400 font-medium"
+                      }, '$' + (typeof safePayout === 'number' ? safePayout.toFixed(2) : '0.00'))
+                    ),
+                    React.createElement('div', {
+                      className: "flex justify-between"
+                    },
+                      React.createElement('span', {
+                        className: "text-gray-400 mobile-hidden"
+                      }, 'ID:'),
+                      React.createElement('span', {
+                        className: "text-gray-500 mobile-hidden text-xs"
+                      }, safeId.substring(0, 8) + '...')
+                    )
                   )
                 );
+                } catch (tradeError) {
+                  console.error(`Erro ao renderizar trade no índice ${index}:`, tradeError, trade);
+                  return React.createElement('div', {
+                    key: `error-${index}`,
+                    className: "bg-red-900 border border-red-600 p-3 rounded-lg mb-2 text-red-400 text-sm"
+                  }, `Erro no contrato ${index + 1}: ${tradeError.message}`);
+                }
               }).filter(Boolean);
             } catch (error) {
               console.error('Erro ao renderizar trades:', error);
@@ -1010,13 +1312,24 @@
                 React.createElement('div', {
                   className: "mt-4 bg-gray-900 rounded-lg p-4 overflow-x-auto"
                 },
-                  React.createElement('h3', {
-                    className: "text-lg font-bold mb-3 flex items-center"
+                  React.createElement('div', {
+                    className: "flex justify-between items-center mb-3"
                   },
-                    React.createElement('span', {
-                      className: "mr-2"
-                    }, '📊'),
-                    'Contratos Ativos'
+                    React.createElement('h3', {
+                      className: "text-lg font-bold flex items-center"
+                    },
+                      React.createElement('span', {
+                        className: "mr-2"
+                      }, '⚡'),
+                      'Contratos Ativos'
+                    ),
+                    isConnected ? 
+                      React.createElement('button', {
+                        onClick: loadOpenContracts,
+                        disabled: isLoadingContracts,
+                        className: "bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-3 py-1 rounded text-sm font-medium transition-colors"
+                      }, isLoadingContracts ? '⏳ Carregando...' : '🔄 Recarregar') 
+                    : null
                   ),
                   React.createElement('div', {
                     className: "space-y-2"
