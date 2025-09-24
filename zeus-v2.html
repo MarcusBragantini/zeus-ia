@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeus.IA - Plataforma de Trading Automatizada</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
+            background: #000;
+            color: #fff;
+        }
+        .min-h-screen { min-height: 100vh; }
+        .bg-black { background: #000; }
+        .bg-gray-800 { background: #1f2937; }
+        .bg-gray-900 { background: #111827; }
+        .bg-green-500 { background: #10b981; }
+        .bg-green-600 { background: #059669; }
+        .bg-green-700 { background: #047857; }
+        .bg-green-900 { background: #064e3b; }
+        .bg-red-600 { background: #dc2626; }
+        .bg-red-700 { background: #b91c1c; }
+        .bg-red-900 { background: #7f1d1d; }
+        .bg-blue-600 { background: #2563eb; }
+        .bg-blue-700 { background: #1d4ed8; }
+        .bg-blue-900 { background: #1e3a8a; }
+        .bg-yellow-600 { background: #d97706; }
+        .bg-yellow-700 { background: #b45309; }
+        .bg-yellow-900 { background: #78350f; }
+        .text-white { color: #fff; }
+        .text-black { color: #000; }
+        .text-gray-300 { color: #d1d5db; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-700 { color: #374151; }
+        .text-green-400 { color: #34d399; }
+        .text-red-400 { color: #f87171; }
+        .text-red-500 { color: #ef4444; }
+        .text-green-500 { color: #10b981; }
+        .text-yellow-400 { color: #fbbf24; }
+        .text-yellow-500 { color: #f59e0b; }
+        .text-orange-400 { color: #fb923c; }
+        .text-blue-400 { color: #60a5fa; }
+        .text-blue-500 { color: #3b82f6; }
+        .flex { display: flex; }
+        .flex-1 { flex: 1; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .space-x-2 > * + * { margin-left: 0.5rem; }
+        .space-x-3 > * + * { margin-left: 0.75rem; }
+        .space-x-4 > * + * { margin-left: 1rem; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-3 { margin-top: 0.75rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mx-4 { margin-left: 1rem; margin-right: 1rem; }
+        .w-8 { width: 2rem; }
+        .w-80 { width: 20rem; }
+        .w-full { width: 100%; }
+        .h-8 { height: 2rem; }
+        .h-96 { height: 24rem; }
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .font-bold { font-weight: bold; }
+        .font-medium { font-weight: 500; }
+        .rounded { border-radius: 0.25rem; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .border { border-width: 1px; }
+        .border-b { border-bottom-width: 1px; }
+        .border-t { border-top-width: 1px; }
+        .border-gray-600 { border-color: #4b5563; }
+        .border-gray-700 { border-color: #374151; }
+        .border-gray-800 { border-color: #1f2937; }
+        .border-green-600 { border-color: #059669; }
+        .border-red-600 { border-color: #dc2626; }
+        .border-blue-600 { border-color: #2563eb; }
+        .border-yellow-600 { border-color: #d97706; }
+        .block { display: block; }
+        .inline-block { display: inline-block; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .hover\:bg-green-700:hover { background: #047857; }
+        .hover\:bg-red-700:hover { background: #b91c1c; }
+        .hover\:bg-red-900:hover { background: #7f1d1d; }
+        .hover\:bg-blue-700:hover { background: #1d4ed8; }
+        .hover\:bg-yellow-700:hover { background: #b45309; }
+        .hover\:bg-gray-800:hover { background: #1f2937; }
+        .hover\:text-red-300:hover { color: #fca5a5; }
+        .transition-colors { transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out; }
+        .disabled\:bg-gray-600:disabled { background: #4b5563; }
+        .disabled\:cursor-not-allowed:disabled { cursor: not-allowed; }
+        .underline { text-decoration: underline; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .overflow-x-auto { overflow-x: auto; }
+        .min-w-0 { min-width: 0; }
+        .flex-wrap { flex-wrap: wrap; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .whitespace-nowrap { white-space: nowrap; }
+        .break-all { word-break: break-all; }
+        .pt-3 { padding-top: 0.75rem; }
+        
+        button { border: none; cursor: pointer; }
+        input, select { border: 1px solid #374151; outline: none; }
+        input:focus, select:focus { border-color: #10b981; }
+        .loading { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: #000; 
+            color: #fff; 
+        }
+        canvas {
+            max-height: 300px !important;
+        }
+        .error-message {
+            background: #7f1d1d;
+            border: 1px solid #dc2626;
+            color: #f87171;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .flex-mobile-col { flex-direction: column; }
+            .w-80 { width: 100%; }
+            .space-x-2 > * + * { margin-left: 0.25rem; }
+            .space-x-3 > * + * { margin-left: 0.5rem; }
+            .space-x-4 > * + * { margin-left: 0.5rem; }
+            .p-4 { padding: 0.75rem; }
+            .px-4 { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .text-xl { font-size: 1rem; }
+            .text-2xl { font-size: 1.25rem; }
+            .text-3xl { font-size: 1.5rem; }
+            .h-96 { height: 200px; }
+            .py-8 { padding-top: 1rem; padding-bottom: 1rem; }
+            .mobile-hidden { display: none; }
+            .mobile-text-xs { font-size: 0.625rem; }
+            .mobile-px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+            .mobile-py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+            .mobile-mb-4 { margin-bottom: 1rem; }
+            .mobile-space-y-4 > * + * { margin-top: 1rem; }
+        }
+        
+        @media (max-width: 480px) {
+            .text-lg { font-size: 1rem; }
+            .text-xl { font-size: 0.875rem; }
+            .px-6 { padding-left: 0.5rem; padding-right: 0.5rem; }
+            .py-3 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+            .space-x-2 > * + * { margin-left: 0.125rem; }
+            .h-96 { height: 180px; }
+            canvas { max-height: 180px !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="loading">
+            <div>Carregando Zeus.IA...</div>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Componente de gráfico simples com Chart.js
+        const SimpleChart = ({ data, symbol }) => {
+          const canvasRef = useRef(null);
+          const chartRef = useRef(null);
+
+          useEffect(() => {
+            try {
+              if (!canvasRef.current || !data.length) return;
+
+              const ctx = canvasRef.current.getContext('2d');
+              
+              if (chartRef.current) {
+                chartRef.current.destroy();
+              }
+
+              chartRef.current = new Chart(ctx, {
+                type: 'line',
+                data: {
+                  labels: data.map(d => d.time),
+                  datasets: [{
+                    label: 'Preço',
+                    data: data.map(d => d.price),
+                    borderColor: '#10B981',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.1,
+                    pointRadius: 0
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  interaction: {
+                    intersect: false,
+                    mode: 'index'
+                  },
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      enabled: window.innerWidth > 768
+                    }
+                  },
+                  scales: {
+                    x: {
+                      grid: { color: '#374151' },
+                      ticks: { 
+                        color: '#6B7280', 
+                        maxTicksLimit: window.innerWidth > 768 ? 10 : 5,
+                        font: {
+                          size: window.innerWidth > 768 ? 12 : 10
+                        }
+                      }
+                    },
+                    y: {
+                      grid: { color: '#374151' },
+                      ticks: {
+                        color: '#6B7280',
+                        font: {
+                          size: window.innerWidth > 768 ? 12 : 10
+                        },
+                        callback: function(value) {
+                          return value.toFixed(symbol && symbol.includes('R_') ? 3 : 5);
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+
+              const handleResize = () => {
+                if (chartRef.current) {
+                  chartRef.current.resize();
+                }
+              };
+
+              window.addEventListener('resize', handleResize);
+
+              return () => {
+                window.removeEventListener('resize', handleResize);
+                if (chartRef.current) {
+                  chartRef.current.destroy();
+                }
+              };
+            } catch (error) {
+              console.error('Erro no gráfico:', error);
+            }
+          }, [data, symbol]);
+
+          return React.createElement('canvas', {
+            ref: canvasRef,
+            style: { width: '100%', height: '300px' }
+          });
+        };
+
+        function DerivTradingPlatform() {
+          const [balance, setBalance] = useState(0);
+          const [currentPrice, setCurrentPrice] = useState(0);
+          const [isTrading, setIsTrading] = useState(false);
+          const [isConnected, setIsConnected] = useState(false);
+          const [lineData, setLineData] = useState([]);
+          const [entryValue, setEntryValue] = useState('10');
+          const [duration, setDuration] = useState('5');
+          const [contractType, setContractType] = useState('CALL');
+          const [strategy, setStrategy] = useState('Agressivo');
+          const [aiModel, setAiModel] = useState('Llama 3.2');
+          const [symbol, setSymbol] = useState('R_50');
+          const [trades, setTrades] = useState([]);
+          const [profit, setProfit] = useState(0.00);
+          const [apiToken, setApiToken] = useState('');
+          const [connectionStatus, setConnectionStatus] = useState('Desconectado');
+          const [errorMessage, setErrorMessage] = useState('');
+          const [isExecutingTrade, setIsExecutingTrade] = useState(false);
+          const wsRef = useRef(null);
+          const [accountInfo, setAccountInfo] = useState(null);
+
+          const derivSymbols = {
+            'R_50': 'Volatility 50 Index',
+            'R_75': 'Volatility 75 Index',
+            'R_100': 'Volatility 100 Index',
+            'BOOM500': 'Boom 500 Index',
+            'BOOM1000': 'Boom 1000 Index',
+            'CRASH500': 'Crash 500 Index',
+            'CRASH1000': 'Crash 1000 Index',
+            'EURUSD': 'EUR/USD',
+            'GBPUSD': 'GBP/USD',
+            'USDJPY': 'USD/JPY'
+          };
+
+          const clearError = () => {
+            setErrorMessage('');
+          };
+
+          const showError = (message) => {
+            setErrorMessage(message);
+            console.error('Erro na aplicação:', message);
+          };
+
+          const connectToDerivAPI = async () => {
+            try {
+              if (!apiToken.trim()) {
+                showError('Por favor, insira seu token da API do Deriv');
+                return;
+              }
+
+              clearError();
+              setConnectionStatus('Conectando...');
+              
+              const ws = new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
+              wsRef.current = ws;
+
+              ws.onopen = () => {
+                try {
+                  setConnectionStatus('Conectado');
+                  setIsConnected(true);
+                  ws.send(JSON.stringify({ authorize: apiToken }));
+                } catch (error) {
+                  showError('Erro ao enviar autorização: ' + error.message);
+                }
+              };
+
+              ws.onmessage = (event) => {
+                try {
+                  const data = JSON.parse(event.data);
+                  handleDerivMessage(data);
+                } catch (error) {
+                  showError('Erro ao processar mensagem da API: ' + error.message);
+                }
+              };
+
+              ws.onclose = () => {
+                setConnectionStatus('Desconectado');
+                setIsConnected(false);
+                setIsTrading(false);
+                setIsExecutingTrade(false);
+              };
+
+              ws.onerror = (error) => {
+                showError('Erro de conexão WebSocket');
+                setConnectionStatus('Erro de conexão');
+                setIsConnected(false);
+                setIsTrading(false);
+                setIsExecutingTrade(false);
+              };
+
+            } catch (error) {
+              showError('Erro na conexão: ' + error.message);
+              setConnectionStatus('Erro');
+            }
+          };
+
+          const handleDerivMessage = (data) => {
+            try {
+              console.log('Mensagem recebida:', data);
+              
+              if (!data || typeof data !== 'object') {
+                console.error('Dados inválidos recebidos:', data);
+                return;
+              }
+
+              if (data.error) {
+                console.error('Erro da API:', data.error);
+                const errorMsg = data.error.message || 'Erro desconhecido da API';
+                if (!errorMsg.includes('already subscribed')) {
+                  showError('Erro da API: ' + errorMsg);
+                  setConnectionStatus('Erro: ' + errorMsg);
+                }
+                return;
+              }
+
+              if (data.authorize) {
+                try {
+                  console.log('Autorização bem-sucedida:', data.authorize);
+                  setAccountInfo(data.authorize);
+                  
+                  const newBalance = data.authorize.balance;
+                  if (typeof newBalance !== 'undefined') {
+                    const balanceValue = parseFloat(newBalance);
+                    setBalance(isNaN(balanceValue) ? 0 : balanceValue);
+                  }
+                  
+                  const currency = data.authorize.currency || 'USD';
+                  const accountType = data.authorize.is_virtual === 1 ? 'CONTA DEMO' : 'CONTA REAL';
+                  setConnectionStatus(`Conectado - ${accountType} (${currency})`);
+                  
+                  setTimeout(() => {
+                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                      subscribeToTicks();
+                    }
+                  }, 100);
+                } catch (error) {
+                  showError('Erro ao processar autorização: ' + error.message);
+                }
+                return;
+              }
+
+              if (data.tick) {
+                try {
+                  if (data.tick && data.tick.quote) {
+                    const newPrice = parseFloat(data.tick.quote);
+                    if (!isNaN(newPrice) && newPrice > 0) {
+                      setCurrentPrice(newPrice);
+                      
+                      const newPoint = {
+                        time: new Date().toLocaleTimeString('pt-BR', { 
+                          hour: '2-digit', 
+                          minute: '2-digit',
+                          second: '2-digit'
+                        }),
+                        price: newPrice,
+                        timestamp: Date.now()
+                      };
+                      
+                      setLineData(prev => {
+                        const newData = Array.isArray(prev) ? prev : [];
+                        return [...newData.slice(-59), newPoint];
+                      });
+                    }
+                  }
+                } catch (error) {
+                  console.error('Erro ao processar tick:', error);
+                }
+                return;
+              }
+
+              if (data.proposal) {
+                try {
+                  console.log('Proposta recebida:', data.proposal);
+                  
+                  if (data.proposal && data.proposal.id && data.proposal.ask_price) {
+                    const askPrice = parseFloat(data.proposal.ask_price);
+                    
+                    if (!isNaN(askPrice) && askPrice > 0) {
+                      const buyParams = {
+                        buy: data.proposal.id,
+                        price: askPrice
+                      };
+                      
+                      console.log('Executando compra:', buyParams);
+                      
+                      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                        wsRef.current.send(JSON.stringify(buyParams));
+                      } else {
+                        showError('Conexão WebSocket perdida durante execução');
+                        setIsExecutingTrade(false);
+                      }
+                    } else {
+                      showError('Preço da proposta inválido');
+                      setIsExecutingTrade(false);
+                    }
+                  } else {
+                    showError('Proposta inválida: dados incompletos');
+                    setIsExecutingTrade(false);
+                  }
+                } catch (error) {
+                  showError('Erro ao processar proposta: ' + error.message);
+                  setIsExecutingTrade(false);
+                }
+                return;
+              }
+
+              if (data.buy) {
+                try {
+                  console.log('Trade executado com sucesso:', data.buy);
+                  setIsExecutingTrade(false);
+                  
+                  if (data.buy && typeof data.buy === 'object') {
+                    const contractId = data.buy.contract_id || Date.now().toString();
+                    const buyPrice = parseFloat(data.buy.buy_price) || 0;
+                    const payout = parseFloat(data.buy.payout) || 0;
+                    
+                    const newTrade = {
+                      id: contractId,
+                      type: contractType || 'CALL',
+                      entryPrice: parseFloat(currentPrice) || 0,
+                      amount: parseFloat(entryValue) || 0,
+                      timestamp: new Date().toLocaleTimeString('pt-BR'),
+                      status: 'ATIVO',
+                      contractId: contractId,
+                      buyPrice: buyPrice,
+                      payout: payout,
+                      result: null,
+                      profit: 0,
+                      currentPrice: parseFloat(currentPrice) || 0
+                    };
+                    
+                    setTrades(prev => {
+                      const currentTrades = Array.isArray(prev) ? prev : [];
+                      return [newTrade, ...currentTrades.slice(0, 9)];
+                    });
+                    
+                    if (contractId && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                      setTimeout(() => {
+                        try {
+                          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                            wsRef.current.send(JSON.stringify({
+                              proposal_open_contract: 1,
+                              contract_id: contractId,
+                              subscribe: 1
+                            }));
+                          }
+                        } catch (err) {
+                          console.error('Erro ao subscrever contrato:', err);
+                        }
+                      }, 200);
+                    }
+                    
+                    clearError();
+                  }
+                } catch (error) {
+                  showError('Erro ao processar compra: ' + error.message);
+                  setIsExecutingTrade(false);
+                }
+                return;
+              }
+
+              if (data.balance) {
+                try {
+                  if (data.balance && typeof data.balance.balance !== 'undefined') {
+                    const newBalance = parseFloat(data.balance.balance);
+                    if (!isNaN(newBalance)) {
+                      setBalance(newBalance);
+                    }
+                  }
+                } catch (error) {
+                  console.error('Erro ao atualizar saldo:', error);
+                }
+                return;
+              }
+
+              if (data.proposal_open_contract) {
+                try {
+                  updateTradeResult(data.proposal_open_contract);
+                } catch (error) {
+                  console.error('Erro ao atualizar resultado do trade:', error);
+                }
+                return;
+              }
+
+            } catch (error) {
+              console.error('Erro crítico ao processar mensagem:', error);
+              showError('Erro crítico: ' + error.message);
+              setIsExecutingTrade(false);
+              setIsTrading(false);
+            }
+          };
+
+          const subscribeToTicks = () => {
+            try {
+              if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                wsRef.current.send(JSON.stringify({
+                  ticks: symbol,
+                  subscribe: 1
+                }));
+              }
+            } catch (error) {
+              showError('Erro ao subscrever aos ticks: ' + error.message);
+            }
+          };
+
+          const updateTradeResult = (contract) => {
+            try {
+              if (!contract || typeof contract !== 'object' || !contract.contract_id) {
+                return;
+              }
+              
+              setTrades(prev => {
+                const currentTrades = Array.isArray(prev) ? prev : [];
+                
+                return currentTrades.map(trade => {
+                  if (!trade || typeof trade !== 'object' || !trade.contractId) {
+                    return trade;
+                  }
+                  
+                  if (trade.contractId === contract.contract_id) {
+                    const profitAmount = contract.profit ? parseFloat(contract.profit) : 0;
+                    const isSold = Boolean(contract.is_sold);
+                    const isWin = isSold && profitAmount > 0;
+                    
+                    if (isSold && trade.status === 'ATIVO') {
+                      setProfit(prevProfit => {
+                        const currentProfit = typeof prevProfit === 'number' ? prevProfit : 0;
+                        return currentProfit + profitAmount;
+                      });
+                    }
+                    
+                    return {
+                      ...trade,
+                      status: isSold ? (isWin ? 'LUCRO' : 'PREJUÍZO') : 'ATIVO',
+                      result: isSold ? profitAmount : null,
+                      currentPrice: contract.current_spot ? parseFloat(contract.current_spot) : (trade.currentPrice || 0),
+                      profit: profitAmount
+                    };
+                  }
+                  
+                  return trade;
+                });
+              });
+              
+            } catch (error) {
+              console.error('Erro ao atualizar resultado do trade:', error);
+            }
+          };
+
+          const executeTrade = () => {
+            try {
+              if (isExecutingTrade) {
+                return;
+              }
+              
+              setIsExecutingTrade(true);
+              
+              if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+                showError('Não conectado à API do Deriv');
+                setIsExecutingTrade(false);
+                return;
+              }
+
+              const amount = parseFloat(entryValue);
+              if (!entryValue || isNaN(amount) || amount <= 0) {
+                showError('Valor de entrada inválido');
+                setIsExecutingTrade(false);
+                return;
+              }
+
+              if (amount < 0.35) {
+                showError('Valor mínimo de entrada: $0.35');
+                setIsExecutingTrade(false);
+                return;
+              }
+
+              if (amount > (balance || 0)) {
+                showError(`Saldo insuficiente. Saldo atual: $${(balance || 0).toFixed(2)}`);
+                setIsExecutingTrade(false);
+                return;
+              }
+
+              const tradeParams = {
+                proposal: 1,
+                amount: amount,
+                basis: 'stake',
+                contract_type: contractType,
+                currency: 'USD',
+                duration: parseInt(duration),
+                duration_unit: 't',
+                symbol: symbol
+              };
+
+              wsRef.current.send(JSON.stringify(tradeParams));
+              clearError();
+              
+              setTimeout(() => {
+                setIsExecutingTrade(false);
+              }, 10000);
+
+            } catch (error) {
+              showError('Erro ao executar trade: ' + error.message);
+              setIsExecutingTrade(false);
+            }
+          };
+
+          useEffect(() => {
+            if (!isTrading || !isConnected) return;
+
+            const tradingInterval = setInterval(() => {
+              try {
+                const shouldTrade = analyzeMarket();
+                
+                if (shouldTrade && entryValue && parseFloat(entryValue) <= (balance || 0)) {
+                  executeTrade();
+                }
+              } catch (error) {
+                showError('Erro no trading automático: ' + error.message);
+                setIsTrading(false);
+              }
+            }, parseInt(duration) * 1000 + 5000);
+
+            return () => clearInterval(tradingInterval);
+          }, [isTrading, isConnected, entryValue, duration, symbol, balance]);
+
+          const analyzeMarket = () => {
+            try {
+              if (lineData.length < 10) return false;
+              
+              switch (strategy) {
+                case 'Agressivo':
+                  return Math.random() > 0.6;
+                case 'Moderado':
+                  return Math.random() > 0.75;
+                case 'Conservador':
+                  return Math.random() > 0.85;
+                default:
+                  return false;
+              }
+            } catch (error) {
+              console.error('Erro na análise do mercado:', error);
+              return false;
+            }
+          };
+
+          const disconnect = () => {
+            try {
+              if (wsRef.current) {
+                if (wsRef.current.readyState === WebSocket.OPEN) {
+                  wsRef.current.send(JSON.stringify({ forget_all: "ticks" }));
+                  wsRef.current.send(JSON.stringify({ forget_all: "proposal_open_contract" }));
+                  
+                  setTimeout(() => {
+                    wsRef.current.close();
+                  }, 100);
+                } else {
+                  wsRef.current.close();
+                }
+              }
+              setIsConnected(false);
+              setIsTrading(false);
+              setIsExecutingTrade(false);
+              setLineData([]);
+              setTrades([]);
+              clearError();
+            } catch (error) {
+              console.error('Erro ao desconectar:', error);
+            }
+          };
+
+          const changeSymbol = (newSymbol) => {
+            try {
+              setSymbol(newSymbol);
+              setLineData([]);
+              if (isConnected) {
+                subscribeToTicks();
+              }
+            } catch (error) {
+              showError('Erro ao alterar símbolo: ' + error.message);
+            }
+          };
+
+          const renderTrades = () => {
+            try {
+              const safeTrades = Array.isArray(trades) ? trades : [];
+              
+              if (safeTrades.length === 0) {
+                return React.createElement('div', {
+                  className: "text-center text-gray-500 py-8"
+                }, 'Nenhum contrato ativo');
+              }
+
+              return safeTrades.map((trade) => {
+                if (!trade || typeof trade !== 'object') {
+                  return null;
+                }
+                
+                const safeId = trade.id || Date.now().toString();
+                const safeType = trade.type || 'CALL';
+                const safeAmount = trade.amount || 0;
+                const safeTimestamp = trade.timestamp || new Date().toLocaleTimeString('pt-BR');
+                const safeStatus = trade.status || 'ATIVO';
+                const safeResult = trade.result;
+                
+                return React.createElement('div', {
+                  key: safeId,
+                  className: "flex justify-between items-center bg-gray-800 p-3 rounded flex-wrap gap-2"
+                },
+                  React.createElement('div', {
+                    className: "flex items-center space-x-2 flex-wrap gap-2 min-w-0"
+                  },
+                    React.createElement('span', {
+                      className: 'px-2 py-1 text-xs rounded ' + (safeType === 'CALL' ? 'bg-green-600' : 'bg-red-600')
+                    }, safeType),
+                    React.createElement('span', {
+                      className: "text-sm font-medium"
+                    }, '$' + (typeof safeAmount === 'number' ? safeAmount.toFixed(2) : '0.00')),
+                    React.createElement('span', {
+                      className: "text-xs text-gray-400"
+                    }, safeTimestamp),
+                    React.createElement('span', {
+                      className: "text-xs text-gray-500 mobile-hidden truncate"
+                    }, 'ID: ' + safeId.substring(0, 8) + '...')
+                  ),
+                  React.createElement('div', {
+                    className: "flex items-center space-x-2 flex-wrap gap-1"
+                  },
+                    React.createElement('span', {
+                      className: 'text-sm font-medium ' + (
+                        safeStatus === 'LUCRO' ? 'text-green-400' :
+                        safeStatus === 'PREJUÍZO' ? 'text-red-400' : 'text-yellow-400'
+                      )
+                    }, safeStatus),
+                    (safeResult !== null && safeResult !== undefined) ? 
+                      React.createElement('span', {
+                        className: 'text-sm font-bold ' + (safeResult > 0 ? 'text-green-400' : 'text-red-400')
+                      }, '$' + (typeof safeResult === 'number' ? safeResult.toFixed(2) : '0.00')) 
+                    : null
+                  )
+                );
+              }).filter(Boolean);
+            } catch (error) {
+              console.error('Erro ao renderizar trades:', error);
+              return React.createElement('div', {
+                className: "text-center text-red-400 py-8"
+              }, 'Erro ao carregar contratos');
+            }
+          };
+
+          // Renderização principal
+          return React.createElement('div', {
+            className: "min-h-screen bg-black text-white"
+          },
+            // Mensagem de erro ou status de loading
+            errorMessage ? 
+              React.createElement('div', {
+                className: "error-message mx-4"
+              },
+                React.createElement('div', {
+                  className: "flex items-center justify-between"
+                },
+                  React.createElement('span', null, '⚠️ ' + errorMessage),
+                  React.createElement('button', {
+                    onClick: clearError,
+                    className: "text-red-400 hover:text-red-300"
+                  }, '✕')
+                )
+              )
+            : isExecutingTrade ?
+              React.createElement('div', {
+                className: "bg-blue-900 border border-blue-600 text-blue-400 p-3 rounded-lg mb-4 mx-4"
+              },
+                React.createElement('div', {
+                  className: "flex items-center justify-center"
+                },
+                  React.createElement('span', {
+                    className: "mr-2"
+                  }, '⏳'),
+                  React.createElement('span', null, 'Executando trade...')
+                )
+              )
+            : null,
+
+            // Header
+            React.createElement('div', {
+              className: "flex justify-between items-center p-4 border-b border-gray-800 flex-wrap gap-2"
+            },
+              React.createElement('div', {
+                className: "flex items-center space-x-2 min-w-0"
+              },
+                React.createElement('div', {
+                  className: "w-8 h-8 bg-green-500 rounded flex items-center justify-center"
+                },
+                  React.createElement('span', {
+                    className: "text-black font-bold text-sm"
+                  }, 'Z')
+                ),
+                React.createElement('span', {
+                  className: "text-xl font-bold truncate"
+                }, 'Zeus.IA'),
+                React.createElement('span', {
+                  className: "text-sm text-gray-400 mobile-hidden"
+                }, 'x Deriv')
+              ),
+              React.createElement('div', {
+                className: "flex items-center space-x-2 flex-wrap gap-2"
+              },
+                React.createElement('div', {
+                  className: "flex items-center space-x-2"
+                },
+                  React.createElement('span', {
+                    className: isConnected ? "text-green-500" : "text-red-500"
+                  }, isConnected ? '🟢' : '🔴'),
+                  React.createElement('span', {
+                    className: "text-sm truncate"
+                  }, connectionStatus)
+                ),
+                (accountInfo && accountInfo.email) ? 
+                  React.createElement('span', {
+                    className: "text-gray-300 text-sm mobile-hidden truncate"
+                  }, accountInfo.email) : null,
+                React.createElement('div', {
+                  className: "bg-green-500 text-black px-4 py-2 rounded-lg font-bold"
+                }, '$ ' + (balance || 0).toFixed(2))
+              )
+            ),
+
+            // Conteúdo principal
+            React.createElement('div', {
+              className: "flex flex-mobile-col"
+            },
+              // Coluna principal
+              React.createElement('div', {
+                className: "flex-1 p-4"
+              },
+                // Formulário de conexão
+                !isConnected ? 
+                  React.createElement('div', {
+                    className: "mb-4 bg-yellow-900 border border-yellow-600 rounded-lg p-4"
+                  },
+                    React.createElement('div', {
+                      className: "flex items-center mb-3 flex-wrap gap-2"
+                    },
+                      React.createElement('span', {
+                        className: "text-yellow-500 mr-2"
+                      }, '⚠️'),
+                      React.createElement('h3', {
+                        className: "text-lg font-bold"
+                      }, 'Configuração da API Deriv')
+                    ),
+                    React.createElement('div', {
+                      className: "flex space-x-3 flex-wrap gap-2"
+                    },
+                      React.createElement('input', {
+                        type: 'password',
+                        value: apiToken,
+                        onChange: (event) => setApiToken(event.target.value),
+                        placeholder: 'Cole seu token da API do Deriv aqui',
+                        className: 'flex-1 min-w-0 bg-gray-800 border border-gray-600 rounded px-3 py-2'
+                      }),
+                      React.createElement('button', {
+                        onClick: connectToDerivAPI,
+                        className: 'bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-bold whitespace-nowrap'
+                      }, 'Conectar')
+                    ),
+                    React.createElement('p', {
+                      className: "text-sm text-gray-400 mt-2"
+                    },
+                      'Obtenha seu token em: ',
+                      React.createElement('a', {
+                        href: 'https://app.deriv.com/account/api-token',
+                        target: '_blank',
+                        className: 'text-blue-400 underline break-all'
+                      }, 'app.deriv.com/account/api-token')
+                    )
+                  )
+                : null,
+
+                // Área do gráfico
+                React.createElement('div', {
+                  className: "w-full h-96 bg-gray-900 rounded-lg p-4 mobile-mb-4"
+                },
+                  React.createElement('div', {
+                    className: "flex justify-between items-center mb-4 flex-wrap gap-2"
+                  },
+                    React.createElement('div', {
+                      className: "flex items-center space-x-2 flex-wrap gap-2"
+                    },
+                      React.createElement('select', {
+                        value: symbol,
+                        onChange: (event) => changeSymbol(event.target.value),
+                        className: 'bg-gray-800 text-orange-400 px-3 py-1 rounded text-sm font-bold',
+                        disabled: !isConnected
+                      },
+                        Object.entries(derivSymbols).map(([key, value]) =>
+                          React.createElement('option', { key: key, value: key }, value)
+                        )
+                      ),
+                      React.createElement('div', {
+                        className: "text-sm text-gray-400"
+                      }, isConnected ? 'Tempo real' : 'Desconectado')
+                    ),
+                    React.createElement('div', {
+                      className: "text-right"
+                    },
+                      React.createElement('div', {
+                        className: "text-2xl font-bold text-white"
+                      }, (currentPrice || 0).toFixed(symbol.includes('R_') ? 3 : 5)),
+                      React.createElement('div', {
+                        className: "text-sm text-gray-400 mobile-hidden truncate"
+                      }, derivSymbols[symbol])
+                    )
+                  ),
+                  React.createElement(SimpleChart, { data: lineData, symbol: symbol })
+                ),
+
+                // Lista de trades
+                React.createElement('div', {
+                  className: "mt-4 bg-gray-900 rounded-lg p-4 overflow-x-auto"
+                },
+                  React.createElement('h3', {
+                    className: "text-lg font-bold mb-3 flex items-center"
+                  },
+                    React.createElement('span', {
+                      className: "mr-2"
+                    }, '📊'),
+                    'Contratos Ativos'
+                  ),
+                  React.createElement('div', {
+                    className: "space-y-2"
+                  }, renderTrades())
+                )
+              ),
+
+              // Sidebar
+              React.createElement('div', {
+                className: "w-80 bg-gray-900 p-6 space-y-6 mobile-space-y-4"
+              },
+                // Status da conexão
+                React.createElement('div', {
+                  className: 'p-3 rounded-lg ' + (isConnected ? 'bg-green-900 border border-green-600' : 'bg-red-900 border border-red-600')
+                },
+                  React.createElement('div', {
+                    className: "flex items-center justify-between"
+                  },
+                    React.createElement('span', {
+                      className: "text-sm"
+                    }, 'Status Deriv API:'),
+                    React.createElement('span', {
+                      className: "font-bold text-xs"
+                    }, connectionStatus)
+                  )
+                ),
+
+                // IA
+                React.createElement('div', null,
+                  React.createElement('label', {
+                    className: "block text-sm font-medium mb-2"
+                  }, '🧠 Inteligência artificial'),
+                  React.createElement('select', {
+                    value: aiModel,
+                    onChange: (event) => setAiModel(event.target.value),
+                    className: 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2'
+                  },
+                    React.createElement('option', { value: 'Llama 3.2' }, 'Llama 3.2'),
+                    React.createElement('option', { value: 'GPT-4' }, 'GPT-4'),
+                    React.createElement('option', { value: 'Claude 3' }, 'Claude 3')
+                  )
+                ),
+
+                // Estratégia
+                React.createElement('div', null,
+                  React.createElement('label', {
+                    className: "block text-sm font-medium mb-2"
+                  }, '⚡ Estratégia'),
+                  React.createElement('select', {
+                    value: strategy,
+                    onChange: (event) => setStrategy(event.target.value),
+                    className: 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2'
+                  },
+                    React.createElement('option', { value: 'Conservador' }, 'Conservador'),
+                    React.createElement('option', { value: 'Moderado' }, 'Moderado'),
+                    React.createElement('option', { value: 'Agressivo' }, 'Agressivo')
+                  )
+                ),
+
+                // Tipo de contrato
+                React.createElement('div', null,
+                  React.createElement('label', {
+                    className: "block text-sm font-medium mb-2"
+                  }, '📈 Tipo de Contrato'),
+                  React.createElement('select', {
+                    value: contractType,
+                    onChange: (event) => setContractType(event.target.value),
+                    className: 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2'
+                  },
+                    React.createElement('option', { value: 'CALL' }, 'CALL (Rise)'),
+                    React.createElement('option', { value: 'PUT' }, 'PUT (Fall)')
+                  )
+                ),
+
+                // Valor
+                React.createElement('div', null,
+                  React.createElement('label', {
+                    className: "block text-sm font-medium mb-2"
+                  }, '💰 Valor da Aposta (USD)'),
+                  React.createElement('input', {
+                    type: 'number',
+                    value: entryValue,
+                    onChange: (event) => setEntryValue(event.target.value),
+                    placeholder: '10.00',
+                    min: '0.35',
+                    max: (balance || 1000).toString(),
+                    step: '0.01',
+                    className: 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2'
+                  })
+                ),
+
+                // Duração
+                React.createElement('div', null,
+                  React.createElement('label', {
+                    className: "block text-sm font-medium mb-2"
+                  }, '⏱️ Duração (ticks)'),
+                  React.createElement('select', {
+                    value: duration,
+                    onChange: (event) => setDuration(event.target.value),
+                    className: 'w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2'
+                  },
+                    React.createElement('option', { value: '5' }, '5 ticks'),
+                    React.createElement('option', { value: '10' }, '10 ticks'),
+                    React.createElement('option', { value: '15' }, '15 ticks'),
+                    React.createElement('option', { value: '20' }, '20 ticks')
+                  )
+                ),
+
+                // Botões
+                React.createElement('button', {
+                  onClick: () => {
+                    try {
+                      if (!isConnected) {
+                        showError('Não conectado à API do Deriv');
+                        return;
+                      }
+                      const amount = parseFloat(entryValue);
+                      if (!entryValue || isNaN(amount) || amount <= 0) {
+                        showError('Valor de entrada inválido');
+                        return;
+                      }
+                      if (amount < 0.35) {
+                        showError('Valor mínimo de entrada: $0.35');
+                        return;
+                      }
+                      if (amount > (balance || 0)) {
+                        showError('Saldo insuficiente. Saldo: $' + (balance || 0).toFixed(2));
+                        return;
+                      }
+                      clearError();
+                      alert('✅ Parâmetros válidos! Pronto para trading.');
+                    } catch (error) {
+                      showError('Erro ao validar parâmetros: ' + error.message);
+                    }
+                  },
+                  disabled: !isConnected,
+                  className: 'w-full py-3 text-sm bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-bold transition-colors'
+                }, 'TESTAR PARÂMETROS'),
+
+                React.createElement('button', {
+                  onClick: executeTrade,
+                  disabled: !isConnected || !entryValue || parseFloat(entryValue) > (balance || 0) || isExecutingTrade,
+                  className: 'w-full py-3 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg font-bold transition-colors'
+                }, isExecutingTrade ? 'EXECUTANDO...' : 'EXECUTAR TRADE MANUAL'),
+
+                React.createElement('button', {
+                  onClick: () => {
+                    try {
+                      if (!isConnected) {
+                        showError('Conecte-se primeiro à API do Deriv');
+                        return;
+                      }
+                      setIsTrading(!isTrading);
+                      clearError();
+                    } catch (error) {
+                      showError('Erro ao alterar modo de trading: ' + error.message);
+                    }
+                  },
+                  disabled: !isConnected,
+                  className: 'w-full py-4 rounded-lg font-bold text-base flex items-center justify-center space-x-2 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors ' + (
+                    isTrading ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
+                  )
+                },
+                  React.createElement('span', null, '▶️'),
+                  React.createElement('span', {
+                    className: "truncate"
+                  }, isTrading ? 'PARAR AUTO' : 'INICIAR AUTO')
+                ),
+
+                isConnected ? 
+                  React.createElement('button', {
+                    onClick: disconnect,
+                    className: 'w-full py-3 border border-red-600 text-red-400 hover:bg-red-900 rounded-lg transition-colors font-medium'
+                  }, 'DESCONECTAR') : null,
+
+                React.createElement('div', {
+                  className: "bg-gray-800 rounded-lg p-4 text-center"
+                },
+                  React.createElement('div', {
+                    className: "text-sm text-gray-400 mb-1"
+                  }, 'Lucro/Prejuízo Total'),
+                  React.createElement('div', {
+                    className: 'text-2xl font-bold ' + ((profit || 0) >= 0 ? 'text-green-400' : 'text-red-400')
+                  }, '$' + (profit || 0).toFixed(2))
+                ),
+
+                React.createElement('div', {
+                  className: "bg-gray-800 rounded-lg p-4"
+                },
+                  React.createElement('div', {
+                    className: "grid grid-cols-2 gap-4"
+                  },
+                    React.createElement('div', {
+                      className: "text-center"
+                    },
+                      React.createElement('div', {
+                        className: "text-xs text-gray-400 mb-1"
+                      }, 'Bot Status'),
+                      React.createElement('div', {
+                        className: 'text-sm font-bold ' + (isTrading ? 'text-green-400' : 'text-gray-400')
+                      }, isTrading ? 'ATIVO' : 'PARADO')
+                    ),
+                    React.createElement('div', {
+                      className: "text-center"
+                    },
+                      React.createElement('div', {
+                        className: "text-xs text-gray-400 mb-1"
+                      }, 'Contratos'),
+                      React.createElement('div', {
+                        className: "text-sm font-bold text-white"
+                      }, trades.length)
+                    )
+                  ),
+                  React.createElement('div', {
+                    className: "mt-3 pt-3 border-t border-gray-700"
+                  },
+                    React.createElement('div', {
+                      className: "flex items-center justify-between"
+                    },
+                      React.createElement('span', {
+                        className: "text-sm text-gray-400"
+                      }, 'Saldo Atual:'),
+                      React.createElement('span', {
+                        className: "text-sm font-bold text-white"
+                      }, '$' + (balance || 0).toFixed(2))
+                    )
+                  )
+                )
+              )
+            )
+          );
+        }
+
+        // Tratamento global de erros
+        window.addEventListener('error', function(event) {
+          console.error('Erro global capturado:', event.error);
+          event.preventDefault();
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+          console.error('Promise rejeitada não tratada:', event.reason);
+          event.preventDefault();
+        });
+
+        ReactDOM.render(React.createElement(DerivTradingPlatform), document.getElementById('root'));
+    </script>
+</body>
+</html>
